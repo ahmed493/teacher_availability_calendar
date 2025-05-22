@@ -1,0 +1,54 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Availability Parser</title>
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.js"></script>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    #calendar { max-width: 900px; margin: 40px auto; }
+  </style>
+</head>
+<body>
+  <h2>📅 Enter Availability</h2>
+  <textarea id="availability" rows="3" style="width:100%;">I'm free Monday mornings and Friday after 2pm</textarea><br><br>
+  <button onclick="parseAvailability()">Parse & Show Calendar</button>
+  <div id="calendar"></div>
+
+  <script>
+    async function parseAvailability() {
+      const text = document.getElementById("availability").value;
+      const res = await fetch('/api/parse', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({text})
+      });
+      const data = await res.json();
+
+      const dayMap = {
+        "Sunday": 0, "Monday": 1, "Tuesday": 2,
+        "Wednesday": 3, "Thursday": 4,
+        "Friday": 5, "Saturday": 6
+      };
+
+      const events = data.map(slot => ({
+        title: "Available",
+        daysOfWeek: [dayMap[slot.day]],
+        startTime: slot.start,
+        endTime: slot.end
+      }));
+
+      const calendarEl = document.getElementById('calendar');
+      calendarEl.innerHTML = "";
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'timeGridWeek',
+        events: events,
+        slotMinTime: "08:00:00",
+        slotMaxTime: "20:00:00"
+      });
+      calendar.render();
+    }
+  </script>
+</body>
+</html>
