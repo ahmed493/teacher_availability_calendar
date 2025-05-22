@@ -4,7 +4,18 @@ import spacy
 import re
 
 app = Flask(__name__)
-nlp = spacy.load("en_core_web_sm")
+import subprocess
+import importlib
+
+def load_model():
+    try:
+        return spacy.load("en_core_web_sm")
+    except OSError:
+        subprocess.run(["python", "-m", "spacy", "download", "en_core_web_sm"])
+        importlib.invalidate_caches()
+        return spacy.load("en_core_web_sm")
+
+nlp = load_model()
 
 DAYS = {
     "monday": "Monday",
